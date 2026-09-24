@@ -1,0 +1,10 @@
+/target
+/dist
+/node_modules
+/crates/worker/build
+/crates/app/generated.css
+.wrangler
+.dev.vars
+*.local
+.DS_Store
+GIT_COMMIT_MESSAGE.txt

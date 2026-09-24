@@ -1,0 +1,9 @@
+name = "poster-gen"
+main = "crates/worker/build/index.js"
+compatibility_date = "2026-09-24"
+account_id = "9f7ebaffd41922c9a8654c772765b31d"
+
+[assets]
+directory = "dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]

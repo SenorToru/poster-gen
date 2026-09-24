@@ -1,0 +1,21 @@
+{
+  "name": "poster-gen",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "css": "tailwindcss -i ./style/input.css -o ./crates/app/generated.css --minify",
+    "build:app": "pnpm run css && export PATH=\"$HOME/.cargo/bin:$PATH\" && env -u NO_COLOR trunk build --release --config ./crates/app/Trunk.toml",
+    "build:worker": "export PATH=\"$HOME/.cargo/bin:$PATH\" && cd crates/worker && worker-build --release",
+    "check": "export PATH=\"$HOME/.cargo/bin:$PATH\" && cargo test -p poster-gen-core && cargo check -p poster-gen-worker --target wasm32-unknown-unknown && pnpm run css",
+    "deploy": "pnpm run build:app && pnpm run build:worker && wrangler deploy"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13",
+    "wrangler": "^4.40.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@parcel/watcher", "esbuild", "workerd"]
+  }
+}
