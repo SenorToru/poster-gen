@@ -4,7 +4,13 @@
 
 ## 准备
 
-- Rust stable，以及 `wasm32-unknown-unknown`
+NixOS 上不用手工装任何东西：`flake.nix` 的 devShell 提供 Rust stable（含 `wasm32-unknown-unknown`、
+rustfmt、clippy）、`trunk`、`worker-build`、Node 和 pnpm 10。进入目录时由 direnv 自动加载（`.envrc`），
+第一次要 `direnv allow`。非交互场景（脚本、Claude Code 的 Bash 工具）用 `direnv exec . <命令>`。
+
+不用 Nix 的机器需要自己准备：
+
+- Rust stable，以及 `wasm32-unknown-unknown`（`rust-toolchain.toml` 里已经写了）
 - [pnpm](https://pnpm.io/) 10。本机若没有 `pnpm` 命令，用 Node 自带的 Corepack：`corepack pnpm`
 - `trunk` 和 `worker-build`：
 
@@ -12,13 +18,14 @@
 cargo install trunk worker-build
 ```
 
+并且要把 `~/.cargo/bin` 放进 `PATH`。
+
 ## 本地
 
 ```bash
-corepack pnpm install
-corepack pnpm run check
-export PATH="$HOME/.cargo/bin:$PATH"
-corepack pnpm exec wrangler dev
+pnpm install
+pnpm run check
+pnpm exec wrangler dev
 ```
 
 打开 Wrangler 给出的本地地址。在页面上选择 Grok 或 Gemini，填入自己的密钥和模型 id。没有密钥时不能生成，服务器上也没有默认密钥。
