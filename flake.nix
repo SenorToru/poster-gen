@@ -14,25 +14,32 @@
     # 与 nixos-config 同一个 channel（nixos-26.05），不用 unstable。
     # 不强求和 nixos-config 锁同一个 rev：版本分叉不是正确性问题。
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # nixos-26.05 的 rustc 停在 1.95.0，要 1.99.0 只能从 unstable 取。
+    # 只用它的 rustc / cargo / clippy / rustfmt，其余工具仍走上面的稳定 channel。
+    nixpkgs-rust.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
-    { nixpkgs, ... }:
+    { nixpkgs, nixpkgs-rust, ... }:
     let
       systems = [ "x86_64-linux" ];
-      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+      forAllSystems =
+        f:
+        nixpkgs.lib.genAttrs systems (
+          system: f nixpkgs.legacyPackages.${system} nixpkgs-rust.legacyPackages.${system}
+        );
     in
     {
-      devShells = forAllSystems (pkgs: {
+      devShells = forAllSystems (pkgs: rustPkgs: {
         default = pkgs.mkShell {
           buildInputs = [
             # rust-toolchain.toml 要 stable + wasm32-unknown-unknown + rustfmt + clippy。
             # 用 nixpkgs 的 rustc / cargo 时 cargo 不读那个文件，所以这几样在这里显式给。
             # wasm32-unknown-unknown 的 std 由 nixpkgs 的 rustc 自带。
-            pkgs.rustc
-            pkgs.cargo
-            pkgs.clippy
-            pkgs.rustfmt
+            rustPkgs.rustc
+            rustPkgs.cargo
+            rustPkgs.clippy
+            rustPkgs.rustfmt
             # rustc 的 wasm32 target 默认用 rust-lld，而 nixpkgs 的 rustc 不带它；
             # 不加 lld 的话编译能过、链接会报 `linker lld not found`。
             pkgs.lld
@@ -44,7 +51,7 @@
             # wrangler 和 tailwindcss 是 devDependency，由 pnpm 管理，
             # 用 `pnpm exec` 或 `pnpm run` 调用，避免同时存在两个版本。
             pkgs.nodejs_24
-            pkgs.pnpm_10
+            pkgs.pnpm_11
           ];
 
           # workerd（wrangler dev 用）静态链接 BoringSSL，CA 查找路径编译时写死，
